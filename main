@@ -1,0 +1,53 @@
+from selenium import webdriver
+import time
+
+t1='China'
+t2='china'
+t3='CHINA'
+
+browser = webdriver.Chrome(executable_path=r'E:/installpackage/chromedriver_win32/chromedriver.exe')  
+url = 'https://ieeexplore.ieee.org/xpl/tocresult.jsp?filter=issueId%20EQ%20%225772983%22&rowsPerPage=50&pageNumber=1&resultAction=REFINE&resultAction=ROWS_PER_PAGE&isnumber=5772983'
+browser.get(url) 
+time.sleep(5) 
+
+# print(browser.page_source)
+# browser.close()
+link_list = browser.find_elements_by_link_text("PDF")
+print('pdf amounts:',len(link_list))
+licenses = []
+for link in link_list:
+    ele_num = link.get_attribute('href')
+    # print(ele_num)
+    number_start = ele_num.index('arnumber') + 9
+    licenses.append(ele_num[number_start:])
+    # print(ele_num[number_start:])
+browser.close()
+
+for number in licenses[3:-3]:
+    browser = webdriver.Chrome(executable_path=r'E:/installpackage/chromedriver_win32/chromedriver.exe')  
+    url = 'https://ieeexplore.ieee.org/document/'+number+'/authors#authors'
+    browser.get(url) 
+    time.sleep(5) 
+    elements = browser.find_elements_by_xpath("//div[@class='authors-accordion-container']/xpl-author-item/div/div/div[2]/div[2]")
+    if not len(elements):
+        print('*'*20+'unstructed data'+'*'*20)
+        elements = browser.find_elements_by_xpath("//div[@class='authors-accordion-container']/xpl-author-item/div")
+    pos = 0
+    texts = elements[0].text
+    while texts.isspace() == True or len(texts) == 0:
+        pos = pos + 1
+        if pos != len(elements):
+            texts = elements[pos].text
+        else:
+            break
+    if pos == len(elements):
+        info = number + ' is not successfully checked.'
+        print(info)
+        continue
+    else:
+        info = number + ':'+ texts
+        print(info)
+    if not (t1 in info or t2 in info or t3 in info):
+        browser.close()
+
+
